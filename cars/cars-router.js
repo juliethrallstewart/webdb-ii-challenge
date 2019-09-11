@@ -17,18 +17,46 @@ router.get('/', (req, res) => {
 
 router.post('/', (req, res) => {
 
-    const { id } = req.params
     const newCar = req.body
 
     db('cars')
         .insert(newCar)
-        .then(newCar => {
-            res.status(201).json(newCar)
+        .then(ids => {
+            console.log(ids, 'new car id')
+            db('cars').where({id: ids[0]})
+                .then(newCarEntry => {
+                    res.status(201).json(newCarEntry)
+                });
         })
         .catch(e => {
             res.status(500).json({error: 'error storing new car in database'})
         })
 })
+
+router.put('/:id', (req, res) => {
+    const changes = req.body;
+    db('cars')
+        .where({ id: req.params.id })
+        .update(changes)
+        .then(count => {
+            res.status(200).json({ message: `updated ${count} record` });
+        })
+        .catch(err => {
+            res.json(err);
+        });
+});
+
+router.delete('/:id', (req, res) => {
+    db('cars')
+        .where({ id: req.params.id })
+        .del()
+        .then(count => {
+            res.status(200).json({ message: `deleted ${count} records` });
+        })
+        .catch(err => {
+            res.json(err);
+        });
+});
 
 
 module.exports = router;
